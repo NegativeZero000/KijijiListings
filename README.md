@@ -4,7 +4,7 @@ This module scrapes provided Kijiji urls for listings and converts them into Pow
 
 # Sample Usage
 
-See [SampleUsage][2] for more details
+See [SampleUsage](https://github.com/NegativeZero000/KijijiListings/blob/master/SampleUsage.ps1) for more details
 
 - Find all listing with "yahtzee" in them in the board game category listed in the Ottawa location.
 
@@ -18,7 +18,5 @@ See [SampleUsage][2] for more details
 
 The core of how this work is that URLs are downloaded as strings and multiple regex strings are used to parse the searches meta data, individuals listings and those listing details.
 
-Parsing html regex is not ideal and can result in many ancillary issue. I was forced to do this because of an [issue with Invoke-WebRequest][1].
+Parsing html regex is not ideal and can result in many ancillary issue. I was forced to do this because of an [issue with Invoke-WebRequest](https://connect.microsoft.com/PowerShell/feedbackdetail/view/1557783/invoke-webrequest-hangs-in-some-cases-unless-usebasicparsing-is-used).
 
-  [1] : https://connect.microsoft.com/PowerShell/feedbackdetail/view/1557783/invoke-webrequest-hangs-in-some-cases-unless-usebasicparsing-is-used
-  [2]: https://github.com/NegativeZero000/KijijiListings/blob/master/SampleUsage.ps1
