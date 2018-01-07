@@ -38,5 +38,5 @@ $kijijiSearchURL = "https://www.kijiji.ca/b-toys-games/ottawa/monopoly/k0c108l17
 $searchListing = Get-KijijiURLListings -BaseUrl $kijijiSearchURL 
 # Display information of the results.
 Write-Host "Total listings: $($listing.TotalNumberOfSearchResults)" -ForegroundColor Green
-$listing | Out-KijijiGridView
+$searchListing | Out-KijijiGridView
 #endregion
