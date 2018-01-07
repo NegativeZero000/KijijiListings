@@ -238,11 +238,11 @@ function Out-KijijiGridView{
         $ListingObjects,
 
         # Param2 help description
-        [validatepattern({$_ -match "\d+,\d+"})]
+        [ValidatePattern("\d+,\d+")]
         [string]$GridSize="7,7",
 
         [Parameter(Mandatory=$false)]
-        [validatepattern({$_ -match "\d+,\d+"})]
+        [ValidatePattern("\d+,\d+")]
         $ImageSize="100,100"
     )
 
