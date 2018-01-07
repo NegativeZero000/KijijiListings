@@ -238,16 +238,18 @@ function Out-KijijiGridView{
         $ListingObjects,
 
         # Param2 help description
-        [validatepattern({$_ -match "\d+[,x]\d+"})]
-        [string]$GridSize="7,7"
+        [validatepattern({$_ -match "\d+,\d+"})]
+        [string]$GridSize="7,7",
+
+        [Parameter(Mandatory=$false)]
+        [validatepattern({$_ -match "\d+,\d+"})]
+        $ImageSize="100,100"
     )
 
     Write-Verbose "ParameterSetName: $($pscmdlet.ParameterSetName)"
     if($pscmdlet.ParameterSetName -eq "SearchObject"){
         $ListingObjects = $ListingSearchObject.Listings
     }
-
-    Add-Type -AssemblyName System.Windows.Forms
 
     # Load the image place holder image.
     $placeholderImagePath = "m:\scripts\noimage.png"
@@ -258,7 +260,7 @@ function Out-KijijiGridView{
     }
 
     # Set the form and images sizes based on user input
-    $imageContainerSize = [Drawing.Size]::new(100,100)  # Width, Height
+    $imageContainerSize = [Drawing.Size]::new($ImageSize)  # Width, Height
     $numberofHorizontallImages,$numberofVerticalImages = [int[]]($GridSize.Split("x,"))
     $numberOfImages = [pscustomobject]@{
         Horizontal = $numberofHorizontallImages
@@ -345,23 +347,3 @@ function Out-KijijiGridView{
     # The form is closed. Clean up
     $listingImageForm.Dispose()
 }
-
-# Format string 
-# 0 - The actual search string in kijiji
-# 1 - Optional page. as page-#/
-
-$kijijiSearchURL = "https://www.kijiji.ca/b-toys-games/ottawa/{0}/k0c108l1700185r60.0?address=Arnprior&ll=45.434745,-76.351847"
-$allListingResults = New-Object "System.Collections.ArrayList"
-
-$listing= Get-KijijiURLListings -PlaceholderUrl $kijijiSearchURL -SearchString yahtzee
-"Total listings: $($listing.TotalNumberOfSearchResults)"
-$allListingResults.AddRange(@($listing.Listings))
-
-#while ($listing.hasMorePages()) {
-#   $listing =  Get-KijijiURLListings $listing.nextPageUrl
-#   $allListingResults.AddRange($listing.Listings)
-#}
-
-# $allListingResults | select title,distance,price,image
-
-$listing | Out-KijijiGridView
