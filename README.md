@@ -2,6 +2,10 @@
 
 This module scrapes provided Kijiji urls for listings and converts them into PowerShell objects. Also included is an image gallery viewer for aforementioned listings. 
 
+## Requirments
+
+This requires PowerShell v3.0 to run. Mostly because of the use of `[pscustomobject]` type accelerator.
+
 # Sample Usage
 
 See [SampleUsage](https://github.com/NegativeZero000/KijijiListings/blob/master/SampleUsage.ps1) for more details
