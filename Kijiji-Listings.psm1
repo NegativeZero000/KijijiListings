@@ -191,12 +191,12 @@ function Get-KijijiURLListings{
     $listingSearchObject = [pscustomobject]$listingMetaData
     # If the lastIndex in the current search is less than the Total then there are more searches that can be performed
     Add-Member -InputObject $listingSearchObject -MemberType ScriptMethod -Name "hasMorePages" -Value {$this.LastListingResultIndex -lt $this.TotalNumberOfSearchResults}
-    Add-Member -InputObject $listingSearchObject -MemberType ScriptProperty -Name "currentPageNumber" -Value {Get-KijijiURLPageNumber -URL $this.URL}
+    Add-Member -InputObject $listingSearchObject -MemberType ScriptProperty -Name "currentPageNumber" -Value {Get-KijijiURLPageNumber -URL $this.RequestedURL}
     # Take the current URL of the search and add a page to it. If there are no more pages use the current URL instead
     Add-Member -InputObject $listingSearchObject -MemberType ScriptProperty -Name "nextPageUrl" -Value {
         # If there are no more pages return the same url as the current one
         if($this.hasMorePages()){
-            return Set-KijijiURLPageNumber -URL $this.URL -PageNumber ($this.currentPageNumber + 1)
+            return Set-KijijiURLPageNumber -URL $this.RequestedURL -PageNumber ($this.currentPageNumber + 1)
         } else {
             return $this.URL
         }
