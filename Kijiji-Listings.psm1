@@ -243,7 +243,11 @@ function Out-KijijiGridView{
 
         [Parameter(Mandatory=$false)]
         [ValidatePattern("\d+,\d+")]
-        $ImageSize="100,100"
+        $ImageSize="100,100",
+
+        [Parameter(Mandatory=$false)]
+        [ValidateScript({Test-Path -LiteralPath $_ -PathType Leaf})]
+        $PlaceholderImagePath = "m:\scripts\noimage.png"
     )
 
     Write-Verbose "ParameterSetName: $($pscmdlet.ParameterSetName)"
@@ -252,7 +256,6 @@ function Out-KijijiGridView{
     }
 
     # Load the image place holder image.
-    $placeholderImagePath = "m:\scripts\noimage.png"
     if(Test-Path $placeholderImagePath -PathType Leaf){
         $placeholderImage = [system.drawing.image]::FromStream([IO.MemoryStream]::new([System.IO.File]::ReadAllBytes($placeholderImagePath)))
     } else {
