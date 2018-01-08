@@ -1,7 +1,7 @@
 ﻿# Import the module. 
 # Load this into a common module location as defined by $env:PSModulePath
 # or use an absolute path
-Import-Module M:\Code\KijijiListings\KijijiListings\Kijiji-Listings.psm1
+Import-Module M:\Code\KijijiListings\KijijiListings\Kijiji-Listings.psm1 -Force
 
 # Note the region comments will appear to be doubled. This is so I can see it easier on my darktheme in ISE
 # Bug: https://windowsserver.uservoice.com/forums/301869-powershell/suggestions/18838177-collapsed-region-in-dark-mode-is-hardly-visible
@@ -38,5 +38,5 @@ $kijijiSearchURL = "https://www.kijiji.ca/b-toys-games/ottawa/monopoly/k0c108l17
 $searchListing = Get-KijijiURLListings -BaseUrl $kijijiSearchURL 
 # Display information of the results.
 Write-Host "Total listings: $($listing.TotalNumberOfSearchResults)" -ForegroundColor Green
-$searchListing | Out-KijijiGridView
+$searchListing | Out-KijijiGridView -ImageSize "120,120"
 #endregion
