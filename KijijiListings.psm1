@@ -225,17 +225,13 @@ function Out-KijijiGridView{
     (
         # Param1 help description
         [Parameter(Mandatory=$true,
-                   Position=0,
-                   ValueFromPipeLine=$true,
-                   ParameterSetName="SearchObject")]
-        [PSTypeName("Kijiji.SearchResult")]
-        $ListingSearchObject,
-
-        [Parameter(Mandatory=$true,
-                   Position=0,
-                   ParameterSetName="ListingObjects")]
+                   Position=0)]
         [PSTypeName("Kijiji.Listing")]
         $ListingObjects,
+
+        [Parameter(Mandatory=$true,
+                   Position=1)]
+        [string]$Title,
 
         # Param2 help description
         [ValidatePattern("\d+,\d+")]
@@ -249,11 +245,6 @@ function Out-KijijiGridView{
         [ValidateScript({Test-Path -LiteralPath $_ -PathType Leaf})]
         $PlaceholderImagePath = "m:\scripts\noimage.png"
     )
-
-    Write-Verbose "ParameterSetName: $($pscmdlet.ParameterSetName)"
-    if($pscmdlet.ParameterSetName -eq "SearchObject"){
-        $ListingObjects = $ListingSearchObject.Listings
-    }
 
     # Load the image place holder image.
     if(Test-Path $placeholderImagePath -PathType Leaf){
@@ -278,7 +269,7 @@ function Out-KijijiGridView{
     # Create the form
     $listingImageForm = New-Object System.Windows.Forms.Form
     $listingImageForm.Size  = $formOverallSize
-    $listingImageForm.Text  = $listing.URL
+    $listingImageForm.Text  = $Title
     $listingImageForm.FormBorderStyle = [System.Windows.Forms.FormBorderStyle]::FixedDialog
     $listingImageForm.StartPosition   = [System.Windows.Forms.FormStartPosition]::CenterScreen
     $formToolTip = [System.Windows.Forms.ToolTip]::new()
@@ -310,7 +301,7 @@ function Out-KijijiGridView{
             $listingImage = [System.Windows.Forms.PictureBox]::new()
             $listingImage.Size = $imageContainerSize
             $listingImage.BorderStyle = [System.Windows.Forms.BorderStyle]::None
-            $listingImage.SizeMode = [System.Windows.Forms.PictureBoxSizeMode]::StretchImage
+            $listingImage.SizeMode = [System.Windows.Forms.PictureBoxSizeMode]::Zoom
             $listingImage.Location = [System.Drawing.Point]::new($horizonalImageIndex * $listingImage.Size.Width  + $imageMatrixXOffset, 
                                                                  $verticalImageIndex  * $listingImage.Size.Height + $imageMatrixYOffset )
             
