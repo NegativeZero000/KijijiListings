@@ -1,0 +1,163 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<!-- *******************************************************************
+THIS SAMPLE CODE AND INFORMATION IS PROVIDED "AS IS" WITHOUT WARRANTY 
+OF ANY KIND,WHETHER EXPRESSED OR IMPLIED, INCLUDING BUT NOT LIMITED TO 
+THE IMPLIED WARRANTIES OF MERCHANTABILITY AND/OR FITNESS FOR A PARTICULAR
+PURPOSE. IF THIS CODE AND INFORMATION IS MODIFIED, THE ENTIRE RISK OF USE
+OR RESULTS IN CONNECTION WITH THE USE OF THIS CODE AND INFORMATION 
+REMAINS WITH THE USER.
+******************************************************************** -->
+
+<Configuration>
+	<DefaultSettings></DefaultSettings>
+
+    <ViewDefinitions>
+        <View>
+            <Name>Kijiji.SearchResult</Name>
+            <ViewSelectedBy>
+                <TypeName>Kijiji.SearchResult</TypeName>
+            </ViewSelectedBy>
+             <ListControl>
+                <ListEntries>
+                    <ListEntry>
+                        <ListItems>
+                            <ListItem>
+                            	<Label>Requested URL</Label>
+                                <PropertyName>RequestedURL</PropertyName>
+                            </ListItem>
+                            <ListItem>
+                                <PropertyName>FirstListingResultIndex</PropertyName>
+                            </ListItem>
+                            <ListItem>
+                                <PropertyName>LastListingResultIndex</PropertyName>
+                            </ListItem>
+                            <ListItem>
+                                <PropertyName>TotalNumberOfSearchResults</PropertyName>
+                            </ListItem>
+                            <ListItem>
+                            	<Label>Has More Pages</Label>
+                                <ScriptBlock>if($_.hasMorePages){"Yes"}else{"No"}</ScriptBlock>
+                            </ListItem>
+                            <ListItem>
+                            	<Label>Listings</Label>
+                                <ScriptBlock>$_.Listings | Select-Object -Expand Title</ScriptBlock>
+                            </ListItem>
+                        </ListItems>
+                    </ListEntry>
+                </ListEntries>
+            </ListControl>
+        </View>
+    	<View>
+            <Name>Kijiji.Listings</Name>
+            <ViewSelectedBy>
+                <TypeName>Kijiji.Listing</TypeName>
+            </ViewSelectedBy>
+            <TableControl>
+                <TableHeaders>
+                    <TableColumnHeader>
+                        <Width>10</Width>
+                        <Alignment>left</Alignment>
+                    </TableColumnHeader>
+                    <TableColumnHeader>
+                    	<Width>30</Width>
+                        <Alignment>left</Alignment>
+                    </TableColumnHeader>
+                    <TableColumnHeader>
+                    	<Label>Price</Label>
+                    	<Width>10</Width>
+                        <Alignment>left</Alignment>
+                    </TableColumnHeader>
+                    <TableColumnHeader>
+                    	<Width>15</Width>
+                        <Alignment>left</Alignment>
+                    </TableColumnHeader>
+                    <TableColumnHeader>
+                    	<Width>14</Width>
+                        <Alignment>left</Alignment>
+                    </TableColumnHeader>
+                    <TableColumnHeader>
+                    	<Width>50</Width>
+                        <Alignment>left</Alignment>
+                    </TableColumnHeader>
+                </TableHeaders>
+                <TableRowEntries>
+                    <TableRowEntry>
+                        <TableColumnItems>
+                            <TableColumnItem>
+                                <PropertyName>ID</PropertyName>
+                            </TableColumnItem>
+                            <TableColumnItem>
+                                <PropertyName>Title</PropertyName>
+                            </TableColumnItem>
+                            <TableColumnItem>
+                                <ScriptBlock>
+                                	$price = $_.price -as [double]
+                                	if(-not [string]::IsNullOrEmpty($price)){
+                                		$price.ToString("C")
+                                	}else{
+                                		$_.price
+                                	}
+                                </ScriptBlock>
+                            </TableColumnItem>
+                            <TableColumnItem>
+                                <PropertyName>Location</PropertyName>
+                            </TableColumnItem>
+                            <TableColumnItem>
+                                <PropertyName>Posted</PropertyName>
+                            </TableColumnItem>
+                            <TableColumnItem>
+                                <PropertyName>ShortDescription</PropertyName>
+                            </TableColumnItem>
+                        </TableColumnItems>
+                    </TableRowEntry>
+                </TableRowEntries>
+            </TableControl>
+        </View>
+      	<View>
+            <Name>Kijiji.Listings</Name>
+            <ViewSelectedBy>
+                <TypeName>Kijiji.Listing</TypeName>
+            </ViewSelectedBy>
+             <ListControl>
+                <ListEntries>
+                    <ListEntry>
+                        <ListItems>
+                            <ListItem>
+                                <PropertyName>ID</PropertyName>
+                            </ListItem>
+                            <ListItem>
+                                <PropertyName>Title</PropertyName>
+                            </ListItem>
+                            <ListItem>
+                            	<Label>Price</Label>
+                                <ScriptBlock>
+                                	$price = $_.price -as [double]
+                                	if(-not [string]::IsNullOrEmpty($price)){
+                                		$price.ToString("C")
+                                	}else{
+                                		$_.price
+                                	}
+                                </ScriptBlock>
+                            </ListItem>
+							<ListItem>
+                                <PropertyName>Distance</PropertyName>
+                            </ListItem>
+							<ListItem>
+                                <PropertyName>Posted</PropertyName>
+                            </ListItem>
+							<ListItem>
+                                <PropertyName>Location</PropertyName>
+                            </ListItem>
+							<ListItem>
+                                <PropertyName>ShortDescription</PropertyName>
+                            </ListItem>
+							<ListItem>
+                                <PropertyName>AbsoluteURL</PropertyName>
+                            </ListItem>
+                        </ListItems>
+                    </ListEntry>
+                </ListEntries>
+            </ListControl>
+        </View>
+    </ViewDefinitions>
+</Configuration>
