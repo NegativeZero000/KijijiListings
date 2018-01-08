@@ -115,7 +115,7 @@ function Convert-KijijiListingToObject{
 			ID               = if($MatchObject.value -match $idRegex){$matches[1]};
 			URL              = if($MatchObject.value -match $urlRegex){$matches[1]};
             AbsoluteURL      = ''
-			Price            = if($MatchObject.value -match $priceRegex){$matches[1].trim()};
+			Price            = if($MatchObject.value -match $priceRegex){$matches[1].trim().trimstart('$')};
 			Title            = if($MatchObject.value -match $titleRegex){[System.Web.HttpUtility]::HtmlDecode($matches[1].trim())};
 			Distance         = if($MatchObject.value -match $distanceRegex){[System.Web.HttpUtility]::HtmlDecode($matches[1].trim())};
 			Location         = if($MatchObject.value -match $locationRegex){[System.Web.HttpUtility]::HtmlDecode($matches[1].trim())};
@@ -332,7 +332,6 @@ function Out-KijijiGridView{
             # Add a click event to the kijiji posting. Add the URL into the Tag so its accessible within the event
             $listingImage.Tag = $ListingObjects[$listingIndex].AbsoluteURL
             $listingImage.add_click({param($Sender)Start-Process $sender.Tag})
-            
 
             # Download the image as a memory stream to bypass saving the file
             $listingImageForm.Controls.Add($listingImage)
