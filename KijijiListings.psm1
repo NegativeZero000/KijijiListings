@@ -312,12 +312,14 @@ function Out-KijijiGridView{
             $formToolTip.SetToolTip($listingImage, $ListingObjects[$listingIndex].Title)
 
             # Fill the picture box. With an image if possible. If not attempt the place holder image or a random color
-            if($ListingObjects[$listingIndex].ImageBytes){
-                $listingImage.Image = [System.Drawing.Image]::FromStream([IO.MemoryStream]::new($ListingObjects[$listingIndex].ImageBytes))
-            } elseif ($placeholderImage){
-                $listingImage.Image = $placeholderImage
-            } else {
+            if($listingIndex -ge $ListingObjects.Count){
                 $listingImage.BackColor =  [System.Drawing.Color]::FromArgb((random 256),(random 256),(random 256),(random 256))
+            } else {
+                if($ListingObjects[$listingIndex].ImageBytes){
+                    $listingImage.Image = [System.Drawing.Image]::FromStream([IO.MemoryStream]::new($ListingObjects[$listingIndex].ImageBytes))
+                } elseif ($placeholderImage){
+                    $listingImage.Image = $placeholderImage
+                }
             }
             
             # Add a click event to the kijiji posting. Add the URL into the Tag so its accessible within the event
