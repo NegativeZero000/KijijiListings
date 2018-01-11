@@ -7,7 +7,7 @@ function Get-SearchListingMetaData{
         $ListingString
     )
     $searchMetaData = @{}
-    $numberofListingsRegex = '(?sm)<div class="showing">.*?Showing (?<FirstListingResultIndex>\d+) - (?<LastListingResultIndex>\d+) of (?<TotalNumberOfSearchResults>\d+) Ads</div>'
+    $numberofListingsRegex = '(?sm)<div class="showing">.*?Showing (?<FirstListingResultIndex>[\d,]+) - (?<LastListingResultIndex>[\d,]+) of (?<TotalNumberOfSearchResults>[\d,]+) Ads</div>'
 
     # Assume no results
     $searchMetaData.FirstListingResultIndex    = 0
@@ -16,9 +16,9 @@ function Get-SearchListingMetaData{
 
 
     if($ListingString -match $numberofListingsRegex ){
-        $searchMetaData.FirstListingResultIndex    = $Matches["FirstListingResultIndex"] 
-        $searchMetaData.LastListingResultIndex     = $Matches["LastListingResultIndex"] 
-        $searchMetaData.TotalNumberOfSearchResults = $Matches["TotalNumberOfSearchResults"] 
+        $searchMetaData.FirstListingResultIndex    = $Matches["FirstListingResultIndex"] -as [int]
+        $searchMetaData.LastListingResultIndex     = $Matches["LastListingResultIndex"]  -as [int]
+        $searchMetaData.TotalNumberOfSearchResults = $Matches["TotalNumberOfSearchResults"]  -as [int]
     }
     return $searchMetaData
 }
