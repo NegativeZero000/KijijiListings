@@ -131,6 +131,9 @@ function Convert-KijijiListingToObject{
             $listingObject.ImageBytes = $webClient.DownloadData($listingObject.ImageURL)
         }
 
+        # If this object will be displayed in a gallery use the AbsoluteURL as the Action
+        Add-Member -InputObject $listingObject -MemberType AliasProperty -Name "Action" -Value 'AbsoluteURL'
+
         return $listingObject
     }
 }
@@ -207,138 +210,4 @@ function Get-KijijiURLListings{
     Sleep -Seconds 1
 
     return $listingSearchObject
-}
-
-function Out-KijijiGridView{
-<#
-.Synopsis
-   Short description
-.DESCRIPTION
-   Long description
-.EXAMPLE
-   Example of how to use this cmdlet
-.EXAMPLE
-   Another example of how to use this cmdlet
-#>
-    [CmdletBinding()]
-    Param
-    (
-        # Param1 help description
-        [Parameter(Mandatory=$true,
-                   Position=0)]
-        [PSTypeName("Kijiji.Listing")]
-        $ListingObjects,
-
-        [Parameter(Mandatory=$true,
-                   Position=1)]
-        [string]$Title,
-
-        # Param2 help description
-        [ValidatePattern("\d+,\d+")]
-        [string]$GridSize="7,7",
-
-        [Parameter(Mandatory=$false)]
-        [ValidatePattern("\d+,\d+")]
-        $ImageSize="100,100",
-
-        [Parameter(Mandatory=$false)]
-        [ValidateScript({Test-Path -LiteralPath $_ -PathType Leaf})]
-        $PlaceholderImagePath = "m:\scripts\noimage.png"
-    )
-
-    # Load the image place holder image.
-    if(Test-Path $placeholderImagePath -PathType Leaf){
-        $placeholderImage = [system.drawing.image]::FromStream([IO.MemoryStream]::new([System.IO.File]::ReadAllBytes($placeholderImagePath)))
-    } else {
-        Write-Warning "Could not find: '$placeholderImagePath '. Will use random colours instead"
-    }
-
-    # Set the form and images sizes based on user input
-    $imageContainerSize = [Drawing.Size]::new($ImageSize)  # Width, Height
-    $numberofHorizontallImages,$numberofVerticalImages = [int[]]($GridSize.Split("x,"))
-    $numberOfImages = [pscustomobject]@{
-        Horizontal = $numberofHorizontallImages
-        Vertical = $numberofVerticalImages
-    }
-    Write-Verbose "Displaying $($numberofHorizontallImages * $numberofVerticalImages) images in ${numberofHorizontallImages}x$numberofVerticalImages grid"
-    $formOverallSize = [Drawing.Size]::new(
-        $imageContainerSize.Width * $numberOfImages.Horizontal,
-        $imageContainerSize.Height * $numberOfImages.Vertical
-    )
-
-    # Create the form
-    $listingImageForm = New-Object System.Windows.Forms.Form
-    $listingImageForm.Size  = $formOverallSize
-    $listingImageForm.Text  = $Title
-    $listingImageForm.FormBorderStyle = [System.Windows.Forms.FormBorderStyle]::FixedDialog
-    $listingImageForm.StartPosition   = [System.Windows.Forms.FormStartPosition]::CenterScreen
-    $formToolTip = [System.Windows.Forms.ToolTip]::new()
-
-    # Adjust the size of the form to account for the title bar and the width of the form border. 
-    Write-Verbose "ClientSize.Width     : $($listingImageForm.ClientSize.Width)" 
-    Write-Verbose "ClientSize.Height    : $($listingImageForm.ClientSize.Height)" 
-    # Logic for determining titlebar height and width from https://ivision.wordpress.com/2007/01/05/title-bar-height-and-form-border-width-of-net-form/
-    # In practice it is not perfect but it is good enough for this.
-    $formBorderWidth = ($listingImageForm.Width - $listingImageForm.ClientSize.Width) / 2
-    $formTitleBarHeight = $listingImageForm.Height – $listingImageForm.ClientSize.Height – 2 * $formBorderWidth
-    Write-Verbose "Form Border Width    : $formBorderWidth"
-    Write-Verbose "Form TitleBar Height : $formTitleBarHeight"
-    $listingImageForm.Size = [Drawing.Size]::new(
-        $listingImageForm.Size.Width + $formBorderWidth,
-        $listingImageForm.Size.Height + $formTitleBarHeight + $formBorderWidth 
-    )
-    Write-Verbose "Adjusted Form Height : $($listingImageForm.Size.Height)"
-    Write-Verbose "Adjusted Form Width  : $($listingImageForm.Size.Width)"
-
-    # Set the left/X and top/Y of the image matrix controls
-    $imageMatrixXOffset = 0
-    $imageMatrixYOffset = 0
-
-    # Create an image matrix from the images provided in a listing group
-    for ($verticalImageIndex = 0; $verticalImageIndex -lt $numberOfImages.Vertical; $verticalImageIndex++){ 
-        for ($horizonalImageIndex = 0; $horizonalImageIndex -lt $numberOfImages.Horizontal; $horizonalImageIndex++){ 
-     
-            $listingImage = [System.Windows.Forms.PictureBox]::new()
-            $listingImage.Size = $imageContainerSize
-            $listingImage.BorderStyle = [System.Windows.Forms.BorderStyle]::None
-            $listingImage.SizeMode = [System.Windows.Forms.PictureBoxSizeMode]::Zoom
-            $listingImage.Location = [System.Drawing.Point]::new($horizonalImageIndex * $listingImage.Size.Width  + $imageMatrixXOffset, 
-                                                                 $verticalImageIndex  * $listingImage.Size.Height + $imageMatrixYOffset )
-            
-            # Determine the integer index of the next image in the collection
-            $listingIndex = $verticalImageIndex * $numberOfImages.Vertical + $horizonalImageIndex
-            
-            # Set a tool tip for the picture box
-            $formToolTip.SetToolTip($listingImage, $ListingObjects[$listingIndex].Title)
-
-            # Fill the picture box. With an image if possible. If not attempt the place holder image or a random color
-            if($listingIndex -ge $ListingObjects.Count){
-                $listingImage.BackColor =  [System.Drawing.Color]::FromArgb((random 256),(random 256),(random 256),(random 256))
-            } else {
-                if($ListingObjects[$listingIndex].ImageBytes){
-                    $listingImage.Image = [System.Drawing.Image]::FromStream([IO.MemoryStream]::new($ListingObjects[$listingIndex].ImageBytes))
-                } elseif ($placeholderImage){
-                    $listingImage.Image = $placeholderImage
-                }
-            }
-            
-            # Add a click event to the kijiji posting. Add the URL into the Tag so its accessible within the event
-            $listingImage.Tag = $ListingObjects[$listingIndex].AbsoluteURL
-            $listingImage.add_click({param($Sender)Start-Process $sender.Tag})
-
-            # Download the image as a memory stream to bypass saving the file
-            $listingImageForm.Controls.Add($listingImage)
-        }
-    }
-
-    # Show the form
-    $listingImageForm.Add_Shown({$listingImageForm.Activate()})
-    [void]$listingImageForm.ShowDialog()
-    Write-Verbose "End Form Height     : $($listingImageForm.Size.Height)"
-    Write-Verbose "End Form Width      : $($listingImageForm.Size.Width)"
-    Write-Verbose "Image Height        : $($imageContainerSize.Height)"
-    Write-Verbose "Image Width         : $($imageContainerSize.Width)"
-
-    # The form is closed. Clean up
-    $listingImageForm.Dispose()
 }
