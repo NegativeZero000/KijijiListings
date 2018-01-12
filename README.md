@@ -8,7 +8,7 @@ This requires PowerShell v3.0 to run. Mostly because of the use of `[pscustomobj
 
 # Sample Usage
 
-See [SampleUsage](https://github.com/NegativeZero000/KijijiListings/blob/master/SampleUsage.ps1) for more details
+See [Setup and Usage](https://github.com/NegativeZero000/KijijiListings/blob/master/Setup%20and%20Usage.md) for _way_ more details
 
 - Find all listing with "yahtzee" in them in the board game category listed in the Ottawa location.
 
