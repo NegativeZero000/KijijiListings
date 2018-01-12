@@ -55,14 +55,14 @@ PowerShellVersion = '3.0'
 
 # Script files (.ps1) that are run in the caller's environment prior to importing this module.
 ScriptsToProcess = @(
-    .\Show-ImageGallery.ps1
+    '.\Show-ImageGallery.ps1'
 )
 
 # Type files (.ps1xml) to be loaded when importing this module
 # TypesToProcess = @()
 
 # Format files (.ps1xml) to be loaded when importing this module
-FormatsToProcess = .\KijijiListings.format.ps1xml
+FormatsToProcess = '.\KijijiListings.format.ps1xml'
 
 # Modules to import as nested modules of the module specified in RootModule/ModuleToProcess
 # NestedModules = @()
