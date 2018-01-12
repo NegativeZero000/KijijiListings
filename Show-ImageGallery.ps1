@@ -56,9 +56,9 @@
 
                 # Fill the picture box. With an image if possible. If not attempt the place holder image or a random color
                 if($galleryIndex -ge $galleryObjects.Count){
-                    # Clear any existing image and tips
+                    # Clear any existing image, tag and tips
                     $imageMatrix[$pictureBoxIndex].Image = $null
-                    # Set a tool tip for the picture box
+                    $imageMatrix[$pictureBoxIndex].Tag = $null
                     $formToolTip.SetToolTip($imageMatrix[$pictureBoxIndex], $null)
 
                     # Set the random colour. Force a lower opacity so the colurs are not the forms focus
@@ -74,9 +74,8 @@
                     $formToolTip.SetToolTip($imageMatrix[$pictureBoxIndex], $galleryObjects[$galleryIndex].Title)
                
      
-                    # Add a click event to the kijiji posting. Add the URL into the Tag so its accessible within the event
+                    # Add the URL into the Tag so its accessible within the event
                     $imageMatrix[$pictureBoxIndex].Tag = $galleryObjects[$galleryIndex].Action
-                    $imageMatrix[$pictureBoxIndex].add_click({param($Sender)if($sender.Tag){Start-Process $sender.Tag}})
                 }
             }
         }
@@ -272,6 +271,9 @@
                     $horizonalImageIndex * $imageSize.Width  + $imageMatrixXOffset, 
                     $verticalImageIndex  * $imageSize.Height + $imageMatrixYOffset 
                 )
+                
+                # Add a click event to the kijiji posting. 
+                $imageMatrix[$galleryIndex].add_click({param($Sender)if($sender.Tag){Start-Process $sender.Tag}})
 
                 # Download the image as a memory stream to bypass saving the file
                 $galleryImageForm.Controls.Add($imageMatrix[$galleryIndex])
