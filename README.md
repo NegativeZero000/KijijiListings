@@ -1,10 +1,10 @@
 # KijijiListings
 
-This module scrapes provided Kijiji urls for listings and converts them into PowerShell objects. Also included is an image gallery viewer for aforementioned listings. 
+This module scrapes provided Kijiji urls for listings and converts them into PowerShell objects. Also included is a clickable image gallery viewer for aforementioned listings. 
 
 ## Requirments
 
-This requires PowerShell v3.0 to run. Mostly because of the use of `[pscustomobject]` type accelerator.
+This requires PowerShell v3.0 to run. Mostly because of the use of `[pscustomobject]` type accelerator but there are some other features that require that version as well.
 
 # Sample Usage
 
@@ -22,5 +22,5 @@ See [SampleUsage](https://github.com/NegativeZero000/KijijiListings/blob/master/
 
 The core of how this work is that URLs are downloaded as strings and multiple regex strings are used to parse the searches meta data, individuals listings and those listing details.
 
-Parsing html regex is not ideal and can result in many ancillary issue. I was forced to do this because of an [issue with Invoke-WebRequest](https://connect.microsoft.com/PowerShell/feedbackdetail/view/1557783/invoke-webrequest-hangs-in-some-cases-unless-usebasicparsing-is-used).
+Parsing html regex is not ideal and can result in many ancillary issues. I was forced to do this because of an [issue with Invoke-WebRequest](https://connect.microsoft.com/PowerShell/feedbackdetail/view/1557783/invoke-webrequest-hangs-in-some-cases-unless-usebasicparsing-is-used). So far it seems to be working fine. 
 
