@@ -62,13 +62,10 @@ function Get-KijijiURLPageNumber{
     )
 
     # Check to see if this url has a page number component. 
-    # When split on forward slashes the page should be the second last component.
-    # If the user search query is exactly page # then this could fail if we are the first page
-    # but the risk is minimal. It seems that the page number is always the 5th segement in the URI. 
-
+    # When split on segments the page should be the second last component.
 
     # Pull the page number out of the segment "page-##/"
-    [int]$pageNumber = if($URL.segments[4] -match "page\-(\d+)"){$Matches[1]}else{1}
+    [int]$pageNumber = if($URL.segments[-2] -match "page\-(\d+)"){$Matches[1]}else{1}
 
     return $pageNumber
 }
@@ -107,20 +104,22 @@ function Set-KijijiURLPageNumber{
     Write-Verbose "Segments: $($URL.Segments.Count) - '$($URL.Segments -join '')'"
     # Edit the segments to either add a page designation or replace the existing one.
     $updatedSegments = 0..($URL.Segments.Count - 1) | ForEach-Object{
-        switch($_){
-            # It seems that the page number is always the 5th segement in the URI. 
-            4{
-                Write-Verbose "URI Segment 4: $($URL.Segments[$_])"
-                # Substitute this segment with a new page number
-                "page-$PageNumber/"
-
-                # If this segment is not already a page number then add this back to the segment chain.
-                if($URL.Segments[$_] -notmatch "page\-\d+"){
-                    Write-Verbose "Added non-page segment back to chain"
-                    $URL.Segments[$_]
-                }
+        
+        
+        # It seems the page segment is always the second last when present.
+        If($_ -eq ($URL.Segments.Count -2)){
+            Write-Verbose "URI Segment $_`: $($URL.Segments[$_])"
+            # If this segment is not already a page number then add this back to the segment chain.
+            if($URL.Segments[$_] -notmatch "page\-\d+"){
+                Write-Verbose "Added non-page segment back to chain"
+                $URL.Segments[$_]
             }
-            default{$URL.Segments[$_]}
+
+            # Substitute or add this segment with a new page number
+            "page-$PageNumber/"
+        } else {
+            # Pass this segment as normal
+            $URL.Segments[$_]
         }
     }
 
