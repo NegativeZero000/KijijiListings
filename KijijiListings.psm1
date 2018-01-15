@@ -127,6 +127,72 @@ function Set-KijijiURLPageNumber{
     return ([System.UriBuilder]::new($URL.Scheme,$URL.Host,$URL.port, -join $updatedSegments,$URL.Query)).Uri.AbsoluteUri
 }
 
+function Convert-PostedStringToDate{
+<#
+.SYNOPSIS
+    Takes the friendly string based posted date and converts it to an actual datetime object 
+.DESCRIPTION
+    Recent Kijiji posts use relative times e.g. "< 47 minutes ago". This function will interpet those
+    times and provide approimate actual posting date and times. If the time cannot be determined then
+    null is returned. 
+.PARAMETER DateString
+    String containing the posted date from a Kijiji listing
+.PARAMETER BaseDate
+    DateTime to be used as the basis for any date offsets that need to be done. Defaults to now 
+    if not supplied.
+.EXAMPLE
+    $listing.Posted | Convert-PostedStringToDate
+.EXAMPLE
+    Convert-PostedStringToDate -DateString "< 4 minutes ago"
+.INPUTS
+    System.String. You can pipe Kijiji date strings to Get-SearchListingMetaData
+.OUTPUTS
+    System.DateTime. Get-SearchListingMetaData returns a datetime of Posted string
+#>
+    param(
+        [parameter(
+            Mandatory,
+            Position=0,
+            ValueFromPipeline=$true)]
+        $DateString,
+
+        [datetime]$BaseDate=(Get-Date)
+    )
+
+    # Trim data that does not need to be in the string
+    $DateString = $DateString.Replace(" ago","").Replace("< ","").Trim()
+
+    # Date time format template
+    $formatTemplate = "dd/MM/yyyy"
+
+    # Determine the string format and adjust the current date accordingly from the base date.
+    switch  -Wildcard ($DateString){
+        "*minutes*"  {
+            $numberofMinutesAgo = $DateString.Replace(" minutes","")
+            return $BaseDate.AddMinutes(-$numberofMinutesAgo)
+            break
+        }
+        "*hours*"    {
+            $numberofHoursAgo = $DateString.Replace(" hours","")
+            return $BaseDate.AddHours(-$numberofHoursAgo)
+            break
+        }
+        "*yesterday*"{
+            # Return yesterday but remove the time
+            return $BaseDate.AddDays(-1).Date
+            break
+        }
+        default{
+            # If none of the other options worked assume this is a normal dd/MM/yyyy string
+            try{
+                return [DateTime]::ParseExact($DateString, $formatTemplate, $null) 
+            } catch {
+                return $null
+            }
+        }
+    }
+}
+
 <#
 .SYNOPSIS
     Parses webcontent for meta data to describe a search 
@@ -186,6 +252,7 @@ function Convert-KijijiListingToObject{
 			Distance         = if($MatchObject.value -match $distanceRegex){[System.Web.HttpUtility]::HtmlDecode($matches[1].trim())};
 			Location         = if($MatchObject.value -match $locationRegex){[System.Web.HttpUtility]::HtmlDecode($matches[1].trim())};
 			Posted           = if($MatchObject.value -match $postedTimeRegex){[System.Web.HttpUtility]::HtmlDecode($matches[1].trim())};
+            PostedAsDate     = ''
 			ShortDescription = if($MatchObject.value -match $descriptionRegex){[System.Web.HttpUtility]::HtmlDecode($matches[1].trim())};
             ImageURL         = if($MatchObject.value -match $imageRegex){$matches[1]};
             ImageBytes       = ''
@@ -264,12 +331,13 @@ function Get-KijijiURLListings{
 
     # Gather the search meta data for making the listing object
     $listingMetaData = $scrapedText | Get-SearchListingMetaData
-    $listingMetaData.PSTypeName = "Kijiji.SearchResult"
+    $listingMetaData.PSTypeName   = "Kijiji.SearchResult"
     $listingMetaData.RequestedURL = $BaseUrl
+    $listingMetaData.QueryDate    = Get-Date 
     $listingMetaData.SearchString = $SearchString
     # Parse some information from the supplied $baseurl
-    $listingMetaData.URLLeftPart = ([uri]$BaseUrl).GetLeftPart([System.UriPartial]::Authority)
-    $listingMetaData.URLType = $pscmdlet.ParameterSetName
+    $listingMetaData.URLLeftPart  = ([uri]$BaseUrl).GetLeftPart([System.UriPartial]::Authority)
+    $listingMetaData.URLType      = $pscmdlet.ParameterSetName
 
     # Convert the listing into objects and add it to the search results
     $kijijiListingRegex = '(?sm)data-ad-id="(\w+)".*?<div class="details">'
