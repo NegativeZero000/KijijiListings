@@ -127,7 +127,7 @@ function Set-KijijiURLPageNumber{
     return ([System.UriBuilder]::new($URL.Scheme,$URL.Host,$URL.port, -join $updatedSegments,$URL.Query)).Uri.AbsoluteUri
 }
 
-function Convert-PostedStringToDate{
+
 <#
 .SYNOPSIS
     Takes the friendly string based posted date and converts it to an actual datetime object 
@@ -149,6 +149,7 @@ function Convert-PostedStringToDate{
 .OUTPUTS
     System.DateTime. Get-SearchListingMetaData returns a datetime of Posted string
 #>
+function Convert-PostedStringToDate{
     param(
         [parameter(
             Mandatory,
@@ -195,20 +196,23 @@ function Convert-PostedStringToDate{
 
 <#
 .SYNOPSIS
-    Parses webcontent for meta data to describe a search 
+    Parses webcontent snippet for listing content to build a custom object
 .DESCRIPTION
-    Gather information via webscraping from search results for statistics on the search itself. 
-    These are useful for determining how many items were found and if there are more on other pages.
+    Builds custom objects from snippets of an html search result page by looking for certain tags and classes. 
+    Can also be used to download the thumbnail images as byte arrays of a listing.
 .PARAMETER HTMLString
-    String containing the raw HTML from a web page.
+    String containing the raw HTML of a complete listing
+.PARAMETER RootListingURL
+    Left part of the URI used to generate the search. URL when found are relative. This is used to create full URLs to resources.
+.PARAMETER DownloadImages
+    Switch that tells the function whether or not it is going to download the actual images as byte arrays or not. 
+    Defaults to $False for performance
 .EXAMPLE
-    $listingMetaData = $scrapedText | Get-SearchListingMetaData
-.EXAMPLE
-    Get-SearchListingMetaData -HTML $scrapedText
+    Select-String -InputObject $scrapedText -Pattern $kijijiListingRegex -AllMatches | Select -ExpandProperty Matches | Convert-KijijiListingToObject
 .INPUTS
-   System.String. You can pipe HTML strings to Get-SearchListingMetaData
+   System.String. You can pipe HTML strings to Convert-KijijiListingToObject
 .OUTPUTS
-   System.Collections.Hashtable. Get-SearchListingMetaData returns a hashtable of navigation based findings.
+   System.Management.Automation.PSCustomObject. Convert-KijijiListingToObject returns custom Kijiji.Listing objects
 #>
 function Convert-KijijiListingToObject{
     param(
@@ -285,6 +289,9 @@ function Convert-KijijiListingToObject{
     String containing the Kjiji search URL with a format placeholder to allow for search strings to be used.
 .PARAMETER SearchString
     String used to limit search much the same as the interactive site.
+.PARAMETER DownloadImages
+    Switch that tells the function whether or not it is going to download the actual images as byte arrays or not. 
+    Defaults to $False for performance
 .EXAMPLE
     $searchListing = Get-KijijiURLListings -BaseUrl $kijijiSearchURL 
 .EXAMPLE
@@ -315,7 +322,10 @@ function Get-KijijiURLListings{
             Mandatory,
             ParameterSetName="Formatted",
             Position=1)]
-        $SearchString
+        $SearchString,
+        
+        [Parameter(Mandatory=$false)]
+        [switch]$DownloadImages=$false
     )
 
     # Get the initial text from the page
@@ -341,7 +351,9 @@ function Get-KijijiURLListings{
 
     # Convert the listing into objects and add it to the search results
     $kijijiListingRegex = '(?sm)data-ad-id="(\w+)".*?<div class="details">'
-    $listingObjects = Select-String -InputObject $scrapedText -Pattern $kijijiListingRegex -AllMatches | Select -ExpandProperty Matches | Convert-KijijiListingToObject -RootListingURL $listingMetaData.URLLeftPart -DownloadImages
+    $listingObjects = Select-String -InputObject $scrapedText -Pattern $kijijiListingRegex -AllMatches | 
+        Select -ExpandProperty Matches | 
+        Convert-KijijiListingToObject -RootListingURL $listingMetaData.URLLeftPart -DownloadImages:$DownloadImages
     $listingMetaData.Listings = $listingObjects
 
     # Add some methods to this for determining pages
