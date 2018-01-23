@@ -127,7 +127,6 @@ function Set-KijijiURLPageNumber{
     return ([System.UriBuilder]::new($URL.Scheme,$URL.Host,$URL.port, -join $updatedSegments,$URL.Query)).Uri.AbsoluteUri
 }
 
-
 <#
 .SYNOPSIS
     Takes the friendly string based posted date and converts it to an actual datetime object 
@@ -377,3 +376,68 @@ function Get-KijijiURLListings{
 
     return $listingSearchObject
 }
+
+<#
+.SYNOPSIS
+    Performs extended searches for a given url to gather more results than a single page/search would provide
+.DESCRIPTION
+    This is a wrapper for Get-KijijiURLListings that will keep performing searches until there are no more results 
+    or a defined threshold has been reached. 
+.PARAMETER BaseUrl
+    String containing the Kjiji search URL.
+.PARAMETER Threshold
+    Defines the maximum number of results to return. If a subsequent search overruns this value all gathered 
+    results will be displayed but no further searches will commence.
+.PARAMETER DownloadImages
+    Switch that tells the function whether or not it is going to download the actual images as byte arrays or not. 
+    Defaults to $False for performance
+.EXAMPLE
+    Collect-SearchResults -BaseUrl $kijijiSearchURL -Threshold 100
+.INPUTS
+   None. You cannot pipe objects to Collect-SearchResults
+.OUTPUTS
+   System.Management.Automation.PSCustomObject. Collect-SearchResults returns custom Kijiji.Listing objects
+#>
+function Collect-SearchResults{
+    [cmdletbinding()]
+    param(
+        [Parameter(
+            Mandatory=$true,
+            Position=0)]
+        [uri]$BaseUrl,
+        
+        # 2000 appears to be the upper limit of what Kijiji will let you navigate pages for.
+        [ValidateRange(0, 2000)]
+        [Parameter(
+            Mandatory=$false,
+            Position=1)]
+        [int]$Threshold = 300,
+
+        [Parameter(
+            Mandatory=$false,
+            Position=2)]
+        [switch]$DownloadImages=$false
+    )
+
+    # Initialize the results collection
+    $allListings = [System.Collections.ArrayList]::new()
+
+    # Perform the basic search
+    $searchResults = Get-KijijiURLListings -BaseUrl $BaseUrl 
+
+    # Display statistics of the primary search
+    Write-Information "Search can found $($searchResults.TotalNumberOfSearchResults) results"
+
+    # Keep searching until we have them all or reach the threshold
+    while($searchResults.hasMorePages() -and $allListings.Count -lt $threshold){
+        $searchResults = Get-KijijiURLListings -BaseUrl $searchResults.nextPageUrl
+        $allListings.AddRange($searchResults.Listings)
+    }
+
+    # Overall search statistics. It is possible that searching might duplicate the odd listing.
+    Write-Information "Found $($allListings.count) listings. $(($allListings | select id -Unique).Count) of which are unique"
+
+    # Return the gathered listings
+    return $allListings
+}
+
