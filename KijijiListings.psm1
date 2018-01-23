@@ -329,6 +329,7 @@ function Get-KijijiURLListings{
 
     # Get the initial text from the page
     $webClient = New-Object System.Net.WebClient
+    $webClient.CachePolicy = [System.Net.Cache.RequestCachePolicy]::new([System.Net.Cache.RequestCacheLevel]::NoCacheNoStore)
 
     # Update the search string based on the parameter set
     if($pscmdlet.ParameterSetName -eq "Formatted"){
@@ -424,6 +425,9 @@ function Collect-SearchResults{
 
     # Perform the basic search
     $searchResults = Get-KijijiURLListings -BaseUrl $BaseUrl 
+
+    # Add the current listings to the results array
+    $allListings.AddRange($searchResults.Listings)
 
     # Display statistics of the primary search
     Write-Information "Search can found $($searchResults.TotalNumberOfSearchResults) results"
