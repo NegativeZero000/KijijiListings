@@ -8,6 +8,12 @@ If you don't have PowerShell 3.0 or don't want to have the module autoload you c
 
 Have a look at [docs.microsoft.com](https://docs.microsoft.com/en-us/powershell/module/microsoft.powershell.core/import-module?view=powershell-5.1) for more on `Import-Module` and [MSDN for more on Import Modules](https://msdn.microsoft.com/en-us/library/dd878284(v=vs.85).aspx)
 
+When importing this module you will get a warning
+
+WARNING: The names of some imported commands from the module 'KijijiListings' include unapproved verbs that might make them less discoverable. To find the commands with unapproved verbs, run the Import-Module command again with the Verbose parameter. For a list of approved verbs, type Get-Verb.
+This is expected because of the function Collect-SearchResults. I like that name and am not sure what else to call it. You can avoid that by setting warning preference but it is not a show stopper.
+
+
 Sample Usage
 ===
 
