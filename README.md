@@ -24,3 +24,9 @@ The core of how this work is that URLs are downloaded as strings and multiple re
 
 Parsing html regex is not ideal and can result in many ancillary issues. I was forced to do this because of an [issue with Invoke-WebRequest](https://connect.microsoft.com/PowerShell/feedbackdetail/view/1557783/invoke-webrequest-hangs-in-some-cases-unless-usebasicparsing-is-used). So far it seems to be working fine. 
 
+When importing this module you will get a warning
+
+        WARNING: The names of some imported commands from the module 'KijijiListings' include unapproved verbs that might make them less discoverable. To find the commands with unapproved verbs, run t
+        he Import-Module command again with the Verbose parameter. For a list of approved verbs, type Get-Verb.
+    
+This is expected because of the function `Collect-SearchResults`. I like that name and am not sure what else to call it. You can avoid that by setting warning preference but it is not a show stopper. 
