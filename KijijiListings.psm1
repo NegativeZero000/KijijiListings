@@ -510,14 +510,15 @@ function Convert-KijijiListingObjectToSlackMessage{
         }
 
         $attachment = @{
-            Pretext  = "The following {0} identified" -f $(if($Flatten){"listing was"}else{"listings were"})
-            AuthorName  = "Kijiji Search" 
-            AuthorLink = "https:\\www.kijiji.ca"
-            Text = $Listing.ShortDescription
-            Colour  = "#00A4A4"
-            Title = $Listing.Title
-            ImageURL = $Listing.ImageURL
-            Fields = $slackFields
+			AuthorName = "Kijiji Search" 
+			AuthorLink = "https:\\www.kijiji.ca"
+			Text       = $Listing.ShortDescription
+			Colour     = "#00A4A4"
+			Title      = $Listing.Title
+			TitleLink  = $Listing.AbsoluteURL
+			ImageURL   = $Listing.ImageURL
+			Actions    = (New-SlackAttachmentAction -Type Button -Text "View in Kijiji" -URL $Listing.AbsoluteURL -Style Default)
+			Fields     = $slackFields
         }
 
         # Send this down the pipe if its ready or collect for the end
