@@ -498,6 +498,10 @@ function Convert-KijijiListingObjectToSlackMessage{
 
         # Special condsiderations if the attachments are meant to be together. 
         if($Flatten){$attachments = New-Object System.Collections.ArrayList}
+
+        # Check to see if a required function is available for this to work correctly. Error out if not. 
+        # This assumes that if ones of the functions is there then the rest likely are as well
+        if(-not (Get-Command "New-SlackMessage" -ErrorAction SilentlyContinue)){throw "Slack functions do not appear to be loaded."}
     }
     process{
         # Map Listing properties to Slack Attachment properties.
