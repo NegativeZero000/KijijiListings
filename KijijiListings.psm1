@@ -445,3 +445,95 @@ function Collect-SearchResults{
     return $allListings
 }
 
+<#
+.SYNOPSIS
+    Takes a Kijiji Listing objects and converts it to a Slack Messsage
+.DESCRIPTION
+    Take the properties of a Kijiji Listing object and converts it to a slack object that can be sent directly to a webhook.
+.PARAMETER Listing
+    Listing object created with the KijijiListings Module.
+.PARAMETER FieldsToDisplay
+    String array defining the list of listing properies to display as fields in the Slack Attachment. 
+.PARAMETER Flatten
+    Switch defines behaviour with multiple messages. If False all listing are converted to their own message. If Flatten is 
+    true then listings will be created as individual attachments in one Slack message. 
+.PARAMETER AsJSON
+    Defines if the output is to be a PowerShell object or a formatted JSON String. 
+.EXAMPLE
+    $newListings | Convert-KijijiListingObjectToSlackMessage
+.INPUTS
+   System.Management.Automation.PSCustomObject. Convert-KijijiListingObjectToSlackMessage accepts Kijiji.Listing objects via the pipeline
+.OUTPUTS
+   System.Management.Automation.PSCustomObject. Convert-KijijiListingObjectToSlackMessage returns custom Slack.Message objects
+   System.String. Convert-KijijiListingObjectToSlackMessage returns Slack ready JSON Strings.
+#>
+function Convert-KijijiListingObjectToSlackMessage{
+    [cmdletbinding()]
+    param(
+        [Parameter(Mandatory,
+            Position=0,
+            ValueFromPipeline)]
+        [PSTypeName("Kijiji.Listing")]
+        $Listing,
+
+        [Parameter(Mandatory=$false)]
+        [string[]]$FieldsToDisplay = ("Price", "Posted", "Distance","Location"),
+
+        [Parameter(Mandatory=$false)]
+        [switch]$Flatten,
+
+        [Parameter(Mandatory=$false)]
+        [switch]$AsJSON
+    )
+
+    begin{
+        # Main message information
+        $payload = @{
+            # Will change text based on number of attachments. 
+            text = ""
+            username = "Slippy"
+            iconemoji = ":slippy:"
+            channel = "#kijijialerts" 
+        }
+
+        # Special condsiderations if the attachments are meant to be together. 
+        if($Flatten){$attachments = New-Object System.Collections.ArrayList}
+    }
+    process{
+        # Map Listing properties to Slack Attachment properties.
+        $slackFields = foreach($fieldName in $FieldsToDisplay){
+            New-SlackAttachmentField -Title $fieldName -Value $listing.$fieldName -Short
+        }
+
+        $attachment = @{
+            Pretext  = "The following {0} identified" -f $(if($Flatten){"listing was"}else{"listings were"})
+            AuthorName  = "Kijiji Search" 
+            AuthorLink = "https:\\www.kijiji.ca"
+            Text = $Listing.ShortDescription
+            Colour  = "#00A4A4"
+            Title = $Listing.Title
+            ImageURL = $Listing.ImageURL
+            Fields = $slackFields
+        }
+
+        # Send this down the pipe if its ready or collect for the end
+        if($Flatten){
+            [void]$attachments.Add((New-SlackAttachment @attachment))
+        } else {
+            # Decide if we are sending a completed object or JSON String
+            $payload.text = "New Kijiji listing available!"
+            $payload.attachments = @([pscustomobject]$attachment)
+
+            New-SlackMessage @payload -AsJSON:$AsJSON
+        }
+    }
+    end{
+        # If to be flattened return the completed message
+        if($Flatten){
+            $payload.text = "New Kijiji listings available!"
+            $payload.attachments = @($attachments)
+
+            New-SlackMessage @payload -AsJSON:$AsJSON
+        } 
+    }
+}
