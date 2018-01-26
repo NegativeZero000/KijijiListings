@@ -26,7 +26,6 @@ Parsing html regex is not ideal and can result in many ancillary issues. I was f
 
 When importing this module you will get a warning
 
-        WARNING: The names of some imported commands from the module 'KijijiListings' include unapproved verbs that might make them less discoverable. To find the commands with unapproved verbs, run t
-        he Import-Module command again with the Verbose parameter. For a list of approved verbs, type Get-Verb.
+    WARNING: The names of some imported commands from the module 'KijijiListings' include unapproved verbs that might make them less discoverable. To find the commands with unapproved verbs, run the Import-Module command again with the Verbose parameter. For a list of approved verbs, type Get-Verb.
     
 This is expected because of the function `Collect-SearchResults`. I like that name and am not sure what else to call it. You can avoid that by setting warning preference but it is not a show stopper. 
