@@ -256,12 +256,14 @@ function Convert-KijijiListingToObject{
 			Location         = if($MatchObject.value -match $locationRegex){[System.Web.HttpUtility]::HtmlDecode($matches[1].trim())};
 			Posted           = if($MatchObject.value -match $postedTimeRegex){[System.Web.HttpUtility]::HtmlDecode($matches[1].trim())};
             PostedAsDate     = ''
+            SearchCompleted  = (Get-Date).ToString()
 			ShortDescription = if($MatchObject.value -match $descriptionRegex){[System.Web.HttpUtility]::HtmlDecode($matches[1].trim())};
             ImageURL         = if($MatchObject.value -match $imageRegex){$matches[1]};
             ImageBytes       = ''
         }
 
         $listingObject.AbsoluteURL = ([System.UriBuilder]::new($RootListingURL + $listingObject.URL)).Uri.AbsoluteUri
+        $listingObject.PostedAsDate = Convert-PostedStringToDate -DateString $listingObject.Posted 
 
         if($DownloadImages.IsPresent){
             $listingObject.ImageBytes = $webClient.DownloadData($listingObject.ImageURL)
