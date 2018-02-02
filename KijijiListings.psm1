@@ -221,10 +221,8 @@ function Convert-KijijiListingToObject{
             ValueFromPipeline=$true)]
         $MatchObject,
 
-        [parameter(
-            Mandatory)]
-        [validatescript({$_ -as [uri]})]
-        $RootListingURL,
+        [parameter(Mandatory)]
+        [uri]$SearchURL,
 
         [switch]$DownloadImages=$false
     )
@@ -256,13 +254,14 @@ function Convert-KijijiListingToObject{
 			Location         = if($MatchObject.value -match $locationRegex){[System.Web.HttpUtility]::HtmlDecode($matches[1].trim())};
 			Posted           = if($MatchObject.value -match $postedTimeRegex){[System.Web.HttpUtility]::HtmlDecode($matches[1].trim())};
             PostedAsDate     = ''
-            SearchCompleted  = (Get-Date).ToString()
 			ShortDescription = if($MatchObject.value -match $descriptionRegex){[System.Web.HttpUtility]::HtmlDecode($matches[1].trim())};
+            SearchURL        = $SearchURL
+            SearchCompleted  = (Get-Date).ToString()
             ImageURL         = if($MatchObject.value -match $imageRegex){$matches[1]};
             ImageBytes       = ''
         }
-
-        $listingObject.AbsoluteURL = ([System.UriBuilder]::new($RootListingURL + $listingObject.URL)).Uri.AbsoluteUri
+        $URLLeftPart  = ([uri]$SearchURL).GetLeftPart([System.UriPartial]::Authority)
+        $listingObject.AbsoluteURL = ([System.UriBuilder]::new($URLLeftPart + $listingObject.URL)).Uri.AbsoluteUri
         $listingObject.PostedAsDate = Convert-PostedStringToDate -DateString $listingObject.Posted 
 
         if($DownloadImages.IsPresent){
@@ -348,14 +347,13 @@ function Get-KijijiURLListings{
     $listingMetaData.QueryDate    = Get-Date 
     $listingMetaData.SearchString = $SearchString
     # Parse some information from the supplied $baseurl
-    $listingMetaData.URLLeftPart  = ([uri]$BaseUrl).GetLeftPart([System.UriPartial]::Authority)
     $listingMetaData.URLType      = $pscmdlet.ParameterSetName
 
     # Convert the listing into objects and add it to the search results
     $kijijiListingRegex = '(?sm)data-ad-id="(\w+)".*?<div class="details">'
     $listingObjects = Select-String -InputObject $scrapedText -Pattern $kijijiListingRegex -AllMatches | 
         Select -ExpandProperty Matches | 
-        Convert-KijijiListingToObject -RootListingURL $listingMetaData.URLLeftPart -DownloadImages:$DownloadImages
+        Convert-KijijiListingToObject -SearchURL $listingMetaData.RequestedURL -DownloadImages:$DownloadImages
     $listingMetaData.Listings = $listingObjects
 
     # Add some methods to this for determining pages
@@ -428,23 +426,27 @@ function Collect-SearchResults{
     # Perform the basic search
     $searchResults = Get-KijijiURLListings -BaseUrl $BaseUrl 
 
-    # Add the current listings to the results array
-    $allListings.AddRange($searchResults.Listings)
-
-    # Display statistics of the primary search
-    Write-Information "Search can found $($searchResults.TotalNumberOfSearchResults) results"
-
-    # Keep searching until we have them all or reach the threshold
-    while($searchResults.hasMorePages() -and $allListings.Count -lt $threshold){
-        $searchResults = Get-KijijiURLListings -BaseUrl $searchResults.nextPageUrl
+    if($searchResults -and $searchResults.Listings.Count -gt 0){
+        # Add the current listings to the results array
         $allListings.AddRange($searchResults.Listings)
+
+        # Display statistics of the primary search
+        Write-Verbose "Search can found $($searchResults.TotalNumberOfSearchResults) results"
+
+        # Keep searching until we have them all or reach the threshold
+        while($searchResults.hasMorePages() -and $allListings.Count -lt $Threshold){
+            $searchResults = Get-KijijiURLListings -BaseUrl $searchResults.nextPageUrl
+            $allListings.AddRange($searchResults.Listings)
+        }
+
+        # Overall search statistics. It is possible that searching might duplicate the odd listing.
+        Write-Verbose "Found $($allListings.count) listings. $(($allListings | select id -Unique).Count) of which are unique"
+
+        # Return the gathered listings
+        return $allListings
+    } else {
+        Write-Warning "No results found"
     }
-
-    # Overall search statistics. It is possible that searching might duplicate the odd listing.
-    Write-Information "Found $($allListings.count) listings. $(($allListings | select id -Unique).Count) of which are unique"
-
-    # Return the gathered listings
-    return $allListings
 }
 
 <#
