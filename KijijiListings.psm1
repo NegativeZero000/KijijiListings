@@ -241,8 +241,13 @@ function Convert-KijijiListingToObject{
             
         # Get the initial text from the page
         $webClient = New-Object System.Net.WebClient
+
+        # Set process date for this collection
+        $processDate = (Get-Date).ToString()
+
     }
     process{
+
         $listingObject = [pscustomobject]@{
             PSTypeName       = "Kijiji.Listing"
 			ID               = if($MatchObject.value -match $idRegex){$matches[1]};
@@ -256,7 +261,7 @@ function Convert-KijijiListingToObject{
             PostedAsDate     = ''
 			ShortDescription = if($MatchObject.value -match $descriptionRegex){[System.Web.HttpUtility]::HtmlDecode($matches[1].trim())};
             SearchURL        = $SearchURL
-            SearchCompleted  = (Get-Date).ToString()
+            SearchCompleted  = $processDate 
             ImageURL         = if($MatchObject.value -match $imageRegex){$matches[1]};
             ImageBytes       = ''
         }
@@ -330,6 +335,7 @@ function Get-KijijiURLListings{
 
     # Get the initial text from the page
     $webClient = New-Object System.Net.WebClient
+    $webClient.Encoding = [System.Text.Encoding]::UTF8
     $webClient.CachePolicy = [System.Net.Cache.RequestCachePolicy]::new([System.Net.Cache.RequestCacheLevel]::NoCacheNoStore)
 
     # Update the search string based on the parameter set
